@@ -1,0 +1,10 @@
+Following Integration Log have reached to max retry limits. 
+
+Name : {!Retry_Log__c.Name}
+Request : {!Retry_Log__c.Request_Payload__c}
+Response : {!Retry_Log__c.Response_Payload__c}
+Error Message : {!Retry_Log__c.Error_Message__c}
+Retry Count : {!Retry_Log__c.Retry_Count__c}
+Max Retry Limit : {!Retry_Log__c.Max_Retry_Limit__c}
+
+Please visit here {!Retry_Log__c.Link}

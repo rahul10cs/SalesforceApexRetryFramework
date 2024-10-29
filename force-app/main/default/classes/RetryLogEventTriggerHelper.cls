@@ -62,51 +62,66 @@ public with sharing class RetryLogEventTriggerHelper {
             }
         }
 
-        // Process each event to create or update Retry Log records
-        for (Retry_Log_Event__e newLog : newEventList) {
-            Retry_Log__c logToUpsert = new Retry_Log__c(
-                Error_Message__c = newLog.Error_Message__c,
-                Method_Name__c = newLog.Method_Name__c,
-                Process_Name__c = newLog.Process_Name__c,
-                Processed__c = newLog.Processed__c,
-                Request_Payload__c = newLog.Request_Payload__c,
-                Response_Payload__c = newLog.Response_Payload__c,
-                Status__c = newLog.Status__c
-            );
+      // Process each event to create or update Retry Log records
+for (Retry_Log_Event__e newLog : newEventList) {
+    Retry_Log__c logToUpsert = new Retry_Log__c(
+        Error_Message__c = newLog.Error_Message__c,
+        Method_Name__c = newLog.Method_Name__c,
+        Process_Name__c = newLog.Process_Name__c,
+        Processed__c = newLog.Processed__c,
+        Request_Payload__c = newLog.Request_Payload__c,
+        Response_Payload__c = newLog.Response_Payload__c,
+        Status__c = newLog.Status__c
+    );
 
-            // Set existing log ID for upsert if it exists
-            Retry_Log__c existingLog;
-            if (String.isNotBlank(newLog.Record_Id__c)) {
-                logToUpsert.Id = newLog.Record_Id__c;
-                existingLog = existingLogMap.get(newLog.Record_Id__c);
-            }
+    // Set existing log ID for upsert if it exists
+    Retry_Log__c existingLog;
+    if (String.isNotBlank(newLog.Record_Id__c)) {
+        logToUpsert.Id = newLog.Record_Id__c;
+        existingLog = existingLogMap.get(newLog.Record_Id__c);
+    }
 
-            // Build a key to check if retry configuration exists for this Process and Method
-            String key = logToUpsert.Process_Name__c + 
-                         (String.isNotBlank(logToUpsert.Method_Name__c) 
-                         ? '--' + logToUpsert.Method_Name__c 
-                         : '');
+    // Build a key to check if retry configuration exists for this Process and Method
+    String key = logToUpsert.Process_Name__c + 
+                 (String.isNotBlank(logToUpsert.Method_Name__c) 
+                 ? '--' + logToUpsert.Method_Name__c 
+                 : '');
 
-            // Apply retry logic if configured and the log indicates a failure
-            if (configMap.containsKey(key) && !logToUpsert.Processed__c && logToUpsert.Status__c == 'Failure') {
-                logToUpsert.Retry__c = true;
-                Retry_Config__mdt config = configMap.get(key);
+    // Apply retry logic if configured and the log indicates a failure
+    if (configMap.containsKey(key) && !logToUpsert.Processed__c && logToUpsert.Status__c == 'Failure') {
+        logToUpsert.Retry__c = true;
+        Retry_Config__mdt config = configMap.get(key);
 
-                if (existingLog == null) {
-                    // Set initial retry properties for a new log
-                    logToUpsert.Retry_Interval_In_Minutes__c = config.Retry_Interval_In_Minutes__c;
-                    logToUpsert.Max_Retry_Limit__c = config.Max_Retry_Count__c;
-                    logToUpsert.Retry_Date_Time__c = System.now().addMinutes(config.Start_First_Retry_After_In_Minutes__c.intValue());
-                    logToUpsert.Retry_Count__c = 0;
-                } else {
-                    // Increment retry count and set next retry date for an existing log
-                    logToUpsert.Retry_Count__c = existingLog.Retry_Count__c + 1;
-                    logToUpsert.Retry_Date_Time__c = existingLog.Retry_Date_Time__c.addMinutes((Integer)existingLog.Retry_Interval_In_Minutes__c);
-                }
-            }
+        // Only use overrides for new logs (i.e., when existingLog is null)
+        if (existingLog == null) {
+            Integer retryInterval = newLog.Retry_Interval_Override__c != null 
+                                    ? newLog.Retry_Interval_Override__c.intValue()
+                                    : config.Retry_Interval_In_Minutes__c.intValue();
+            Integer maxRetryLimit = newLog.Max_Retry_Limit_Override__c != null 
+                                    ? newLog.Max_Retry_Limit_Override__c.intValue()
+                                    : config.Max_Retry_Count__c.intValue();
+            Integer retryCount = newLog.Retry_Count_Override__c != null 
+                                    ? newLog.Retry_Count_Override__c.intValue()
+                                    : 0;
+            Integer startFirstRetryAfter = newLog.Start_First_Retry_After_Override__c != null 
+                                           ? newLog.Start_First_Retry_After_Override__c.intValue()
+                                           : config.Start_First_Retry_After_In_Minutes__c.intValue();
 
-            retryLogList.add(logToUpsert);
+            // Set initial retry properties for a new log
+            logToUpsert.Retry_Interval_In_Minutes__c = retryInterval;
+            logToUpsert.Max_Retry_Limit__c = maxRetryLimit;
+            logToUpsert.Retry_Date_Time__c = System.now().addMinutes(startFirstRetryAfter);
+            logToUpsert.Retry_Count__c = retryCount;
+        } else {
+            // For existing logs, increment retry count and use the existing retry interval
+            logToUpsert.Retry_Count__c = existingLog.Retry_Count__c + 1;
+            logToUpsert.Retry_Date_Time__c = existingLog.Retry_Date_Time__c.addMinutes((Integer)existingLog.Retry_Interval_In_Minutes__c);
         }
+    }
+
+    retryLogList.add(logToUpsert);
+}
+        
 
         // Upsert logs and handle any potential exceptions
         if (!retryLogList.isEmpty()) {

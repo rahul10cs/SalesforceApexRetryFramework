@@ -47,28 +47,24 @@ public class RetryDemo implements RetryHandlerInterface {
         try {
             // Attempt to insert the Account and log success
             insert acc;
-            RetryLogUtility.createLog(new RetryLogDataObject(
-                retryLogObj?.Id, 
-                '', 
-                'doSomething', 
-                'RetryDemo', 
-                true, 
-                JSON.serialize(paramMap), 
-                JSON.serialize(acc), 
-                'Success'
-            ));
+            RetryLogDataObject log = RetryLogDataObject.builder()
+            .setProcessName('RetryDemo')
+            .setMethodName('doSomething')
+            .setRequestPayload(JSON.serialize(paramMap))
+            .setStatus('Success')
+            .build();
+            RetryLogUtility.createLog(log);
         } catch (Exception ex) { 
             // Log failure with error message if insertion fails
-            RetryLogUtility.createLog(new RetryLogDataObject(
-                retryLogObj?.Id, 
-                'error occurred', 
-                'doSomething', 
-                'RetryDemo', 
-                false, 
-                JSON.serialize(paramMap), 
-                JSON.serialize(acc), 
-                'Failure'
-            ));
+            RetryLogDataObject log = RetryLogDataObject.builder()
+            .setProcessName('RetryDemo')
+            .setMethodName('doSomething')
+            .setRequestPayload(JSON.serialize(paramMap))
+            .setStatus('Failure')
+            .setErrorMessage(ex.getMessage())
+            .setMaxRetryLimitOverride(5)
+            .build();
+            RetryLogUtility.createLog(log);
         }
     }
 

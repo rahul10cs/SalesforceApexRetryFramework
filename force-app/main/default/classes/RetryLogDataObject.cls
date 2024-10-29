@@ -1,51 +1,112 @@
 /**
  * RetryLogDataObject
  * 
- * This data object class is used to encapsulate the details of a retry log event.
- * It holds information such as error messages, process details, payloads, and 
- * processing status to facilitate logging and retry handling.
- * 
- * Created by: Rahul Goyal
- * Created on: October 25, 2024
+ * A fully flexible data object for retry log events. All fields are optional,
+ * and can be set using a builder pattern.
  */
 global class RetryLogDataObject {    
 
-    // Attributes to store retry log information
-    public String errorMessage;
-    public String methodName;
+    // Fields for the retry log event
     public String processName;
-    public Boolean processed;
+    public String methodName;
     public String requestPayload;
-    public String responsePayload;
     public String status;
+    public String errorMessage;
+    public Boolean processed;
+    public String responsePayload;
     public String recordId;
 
+    // Retry configuration overrides
+    public Integer maxRetryLimitOverride;
+    public Integer retryIntervalOverride;
+    public Integer startFirstRetryAfterOverride;
+
     /**
-     * Constructor to initialize the RetryLogDataObject with specific retry log details.
-     * 
-     * @param recordId       - Unique identifier for the retry record
-     * @param errorMessage   - Description of any error that occurred
-     * @param methodName     - Name of the method associated with the retry
-     * @param processName    - Name of the process being retried
-     * @param processed      - Boolean indicating if the log has been processed
-     * @param requestPayload - Request payload details for the retry operation
-     * @param responsePayload- Response payload received from the retry operation
-     * @param status         - Status indicating success or failure of the retry operation
+     * Private constructor to enforce use of the builder pattern.
      */
-    public RetryLogDataObject(String recordId, String errorMessage, String methodName, String processName, Boolean processed, String requestPayload, String responsePayload, String status) {
-        this.recordId = recordId;
-        this.errorMessage = errorMessage;
-        this.methodName = methodName;
-        this.processName = processName;
-        this.processed = processed;
-        this.requestPayload = requestPayload;
-        this.responsePayload = responsePayload;
-        this.status = status;
+    private RetryLogDataObject() {}
+
+    /**
+     * Static method to create a new Builder instance.
+     * 
+     * @return Builder instance for chaining additional optional attributes
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
-     * Default constructor for RetryLogDataObject.
-     * Initializes an empty data object to hold retry log details.
+     * Builder class for RetryLogDataObject to set optional fields.
      */
-    public RetryLogDataObject() {}
+    global class Builder {
+        private RetryLogDataObject dataObject;
+
+        private Builder() {
+            dataObject = new RetryLogDataObject();
+        }
+
+        // Optional attribute setters with chaining
+        public Builder setProcessName(String processName) {
+            dataObject.processName = processName;
+            return this;
+        }
+
+        public Builder setMethodName(String methodName) {
+            dataObject.methodName = methodName;
+            return this;
+        }
+
+        public Builder setRequestPayload(String requestPayload) {
+            dataObject.requestPayload = requestPayload;
+            return this;
+        }
+
+        public Builder setStatus(String status) {
+            dataObject.status = status;
+            return this;
+        }
+
+        public Builder setErrorMessage(String errorMessage) {
+            dataObject.errorMessage = errorMessage;
+            return this;
+        }
+
+        public Builder setProcessed(Boolean processed) {
+            dataObject.processed = processed;
+            return this;
+        }
+
+        public Builder setResponsePayload(String responsePayload) {
+            dataObject.responsePayload = responsePayload;
+            return this;
+        }
+
+        public Builder setRecordId(String recordId) {
+            dataObject.recordId = recordId;
+            return this;
+        }
+
+
+        public Builder setMaxRetryLimitOverride(Integer maxRetryLimitOverride) {
+            dataObject.maxRetryLimitOverride = maxRetryLimitOverride;
+            return this;
+        }
+
+        public Builder setRetryIntervalOverride(Integer retryIntervalOverride) {
+            dataObject.retryIntervalOverride = retryIntervalOverride;
+            return this;
+        }
+
+        public Builder setStartFirstRetryAfterOverride(Integer startFirstRetryAfterOverride) {
+            dataObject.startFirstRetryAfterOverride = startFirstRetryAfterOverride;
+            return this;
+        }
+
+        /**
+         * Builds and returns the configured RetryLogDataObject.
+         */
+        public RetryLogDataObject build() {
+            return dataObject;
+        }
+    }
 }

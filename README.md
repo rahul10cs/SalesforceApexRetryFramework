@@ -108,6 +108,20 @@ Create a record in **Retry Config Custom Metadata** (`Retry_Config__mdt`).
 - **Retry Interval (Minutes)**: `30`  
 - **Start First Retry After (Minutes)**: `5`
 
+
+| Field Label                        | API Name                            | Sample Value             | Description |
+|----------------------------------|-------------------------------------|--------------------------|-------------|
+| Process Name                     | Process_Name__c                     | MyIntegrationHandler     | Name of the integration handler or process |
+| Method Name (Optional)           | Method_Name__c                      | doSomething              | Specific method to apply retry logic |
+| Max Retry Count                  | Max_Retry_Count__c                  | 3                        | Maximum number of retry attempts |
+| Retry Interval (Minutes)         | Retry_Interval_Minutes__c           | 30                       | Interval between retry attempts |
+| Start First Retry After (Minutes)| Start_First_Retry_After_Minutes__c  | 5                        | Delay before first retry |
+| Is Active                        | Is_Active__c                        | true                     | Enables or disables this configuration |
+| Description (Optional)           | Description__c                      | Retry config for handler | Purpose of this retry rule |
+
+
+
+
 _Reference: `Retry_Config__mdt`_
 
 ---

@@ -163,7 +163,7 @@ _Reference: `RetryLogUtility.cls`, `RetryDemo.cls`_
 
 2. **Processing**  
    `RetryLogEventTrigger` consumes the event.  
-   The helper checks `Retry_Config__mdt` to determine retry eligibility.
+   The helper checks `Retry_Config__mdt` to determine retry eligibility and interval.
 
 3. **Log Creation**  
    A `Retry_Log__c` record is created.  
